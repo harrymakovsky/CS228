@@ -4,6 +4,11 @@ var i = 0;
 var x = window.innerWidth / 2; 
 var y = window.innerHeight / 2;
 var z = 50;
+var rawXMin = 10000;
+var rawXMax = -10000;
+var rawYMin = 10000;
+var rawYMax = -10000;
+
 
 Leap.loop(controllerOptions, function(frame)
 {
@@ -39,10 +44,46 @@ function HandleHand(hand){
 }
 
 function HandleFinger(finger){
-    x = finger.tipPosition[0] + 500;
-    y = window.innerHeight - finger.tipPosition[1] - 200;
+
+   
+
+    if(finger.tipPosition[0]< rawXMin){
+        rawXMin = finger.tipPosition[0];
+    }
+    if(finger.tipPosition[0]> rawXMax){
+        rawXMax = finger.tipPosition[0];
+    }
+    
+    if(finger.tipPosition[1]< rawYMin){
+        rawYMin = finger.tipPosition[1];
+    }
+    if(finger.tipPosition[1]> rawYMax){
+        rawYMax = finger.tipPosition[1];
+    }
+
+    
+   
+    x  = scaleValue(finger.tipPosition[0],[rawXMin,rawXMax],[0,window.innerWidth]);
+    y  = window.innerHeight - scaleValue(finger.tipPosition[1],[rawYMin,rawYMax],[0,window.innerHeight]);
     z = finger.tipPosition[2] + 400;
+
+
+    console.log("X:")
+    console.log(rawXMin);
+    console.log(rawXMax);
+
+    console.log("Y:")
+    console.log(rawYMin);
+    console.log(rawYMax);
+    //console.log(finger.tipPosition);
     
-    console.log(finger.tipPosition);
-    
+}
+
+//Found this code on github
+function scaleValue(value, from, to) {
+
+	var scale = (to[1] - to[0]) / (from[1] - from[0]);
+	var capped = Math.min(from[1], Math.max(from[0], value)) - from[0];
+
+	return ~~(capped * scale + to[0]);
 }
