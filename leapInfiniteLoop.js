@@ -16,7 +16,7 @@ function HandleFrame(frame){
 
     //x += Math.floor(Math.random()*3)-1;
     //y += Math.floor(Math.random()*3)-1;
-    circle(x,z,50);
+    circle(x,y,50);
     //console.log(i);
     //i+=1;
     
@@ -40,8 +40,8 @@ function HandleHand(hand){
 
 function HandleFinger(finger){
     x = finger.tipPosition[0] + 500;
+    y = window.innerHeight - finger.tipPosition[1] - 200;
     z = finger.tipPosition[2] + 400;
-    y = 200 - finger.tipPosition[1];
     
     console.log(finger.tipPosition);
     
