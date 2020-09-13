@@ -32,19 +32,28 @@ function HandleFrame(frame){
 
 function HandleHand(hand){
         var fingers = hand.fingers;
+        var width = 3;
+        var stroke = 100;
 
-        for(var i = 0; i<5 ; i++){
-            HandleFinger(fingers[i]);
-            
+        
+        for(var j = 3; j>=0 ; j--){
+            for(var i = 0; i<5 ; i++){
+                HandleBone(fingers[i].bones[j],width,stroke);
+            } 
+            width+=1;
+            stroke+=40;
         }
 
 }
 
 function HandleFinger(finger){
 
-
+    var width = 6;
+    var stroke = 220;
     for(var i = 0; i<4 ; i++){
-        HandleBone(finger.bones[i]);
+        HandleBone(finger.bones[i],width,stroke);
+        width-=1;
+        stroke-=50;
     }
 
 //    if(finger.tipPosition[0]< rawXMin){
@@ -70,7 +79,7 @@ function HandleFinger(finger){
 }
 
 
-function HandleBone(bone){
+function HandleBone(bone,width,s){
     var base = bone.prevJoint;
     var end = bone.nextJoint;
     console.log(bone);
@@ -91,6 +100,8 @@ function HandleBone(bone){
     [xb,yb] = TransformCoordinates(base[0],base[1]);
     [xe,ye] = TransformCoordinates(end[0],end[1]);
     
+    strokeWeight(width);
+    stroke(s);
     line(xb,yb,xe,ye);
     
     
