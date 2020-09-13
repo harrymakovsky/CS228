@@ -72,6 +72,7 @@ function HandleFinger(finger){
 
 function HandleBone(bone){
     var base = bone.prevJoint;
+    var end = bone.nextJoint;
     console.log(bone);
 
     if(base[0]< rawXMin){
@@ -87,15 +88,25 @@ function HandleBone(bone){
         rawYMax = base[1];
     }
  
-    x = scaleValue(base[0],[rawXMin,rawXMax],[0,window.innerWidth]);
-    y = window.innerHeight - scaleValue(base[1],[rawYMin,rawYMax],[0,window.innerHeight]);
-    z = base[2] + 400;
-
+    [xb,yb] = TransformCoordinates(base[0],base[1]);
+    [xe,ye] = TransformCoordinates(end[0],end[1]);
     
-    circle(x,y,50);
+    line(xb,yb,xe,ye);
+    
+    
+  //  circle(x,y,50);
 
 
 
+}
+
+
+
+function TransformCoordinates(x,y){
+    x = scaleValue(x,[rawXMin,rawXMax],[0,window.innerWidth]);
+    y = window.innerHeight - scaleValue(y,[rawYMin,rawYMax],[0,window.innerHeight]);
+
+    return [x,y];
 }
 
 //Found this code on github
