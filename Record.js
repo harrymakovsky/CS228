@@ -8,12 +8,24 @@ var rawXMin = 10000;
 var rawXMax = -10000;
 var rawYMin = 10000;
 var rawYMax = -10000;
+var previousNumHands = 0;
+var currentNumHands = 0;
+
+var oneFrameOfData = nj.zeros([5,4,6]);
 
 
 Leap.loop(controllerOptions, function(frame)
 {
+
+    currentNumHands = frame.hands.length;
+
     clear();
     HandleFrame(frame);
+    if(previousNumHands == 2 && currentNumHands == 1){
+        RecordData();
+    }
+
+    previousNumHands = currentNumHands;
 }
 );
 
@@ -23,7 +35,7 @@ function HandleFrame(frame){
     //y += Math.floor(Math.random()*3)-1;
 
     
-    if (frame.hands.length==1){
+    if (frame.hands.length>=1){
         var hand = frame.hands[0];
         HandleHand(hand);
     } 
@@ -38,7 +50,7 @@ function HandleHand(hand){
         
         for(var j = 3; j>=0 ; j--){
             for(var i = 0; i<5 ; i++){
-                HandleBone(fingers[i].bones[j],width,stroke);
+                HandleBone(fingers[i].bones[j],width,stroke,i,j);
             } 
             width+=1;
             stroke+=40;
@@ -79,10 +91,11 @@ function HandleFinger(finger){
 }
 
 
-function HandleBone(bone,width,s){
+function HandleBone(bone,width,s,fingerIndex,boneIndex){
+
     var base = bone.prevJoint;
     var end = bone.nextJoint;
-    console.log(bone);
+    //console.log(bone);
 
     if(base[0]< rawXMin){
         rawXMin = base[0];
@@ -99,15 +112,44 @@ function HandleBone(bone,width,s){
  
     [xb,yb] = TransformCoordinates(base[0],base[1]);
     [xe,ye] = TransformCoordinates(end[0],end[1]);
+
+    var zb = base[2];
+    var ze = end[2];
+
+    
+    
+
+    oneFrameOfData.set(fingerIndex,boneIndex,0,xb);
+    oneFrameOfData.set(fingerIndex,boneIndex,1,yb);
+    oneFrameOfData.set(fingerIndex,boneIndex,2,zb);
+    oneFrameOfData.set(fingerIndex,boneIndex,3,xe);
+    oneFrameOfData.set(fingerIndex,boneIndex,4,ye);
+    oneFrameOfData.set(fingerIndex,boneIndex,5,ze);
+
+
     
     strokeWeight(width);
-    stroke(s);
+    
+    if(currentNumHands == 1){
+        stroke(0,s,0);
+    }else{
+        stroke(s,0,0);
+    }
+    
     line(xb,yb,xe,ye);
     
     
   //  circle(x,y,50);
 
 
+
+}
+
+function RecordData(){
+    if(previousNumHands == 2 && currentNumHands == 1){
+        background(50);
+        console.log(oneFrameOfData.toString())
+    } 
 
 }
 

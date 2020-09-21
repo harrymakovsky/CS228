@@ -1,130 +1,85 @@
-var controllerOptions = {};
+oneFrameOfData = nj.array([[[  484,  136,112.542,  484,  136,112.542],
+        [  484,  136,112.542,  803,  122,81.4096],
+        [  802,  122,81.4096,  906,  129,51.4436],
+        [  906,  129,51.4436, 1016,  129,32.9408]],
+       [[  399,   78,108.517,  595,   26,44.8954],
+        [  595,   26,44.8954,  725,   26,6.92154],
+        [  723,   26,6.92154,  794,   49,-13.0333],
+        [  794,   49,-13.0333,  839,   76,-25.2991]],
+       [[  300,   74,104.566,  407,   27,41.7979],
+        [  407,   27,41.7979,  439,   38,-3.38701],
+        [  438,   38,-3.38701,  480,   71,-27.3112],
+        [  480,   71,-27.3112,  517,  104,-40.458]],
+       [[  200,   79,101.249,  216,   41,43.674],
+        [  216,   41,43.674,  219,   66,2.41604],
+        [  217,   66,2.41604,  257,  109,-18.7099],
+        [  257,  109,-18.7099,  300,  149,-29.2508]],
+       [[  108,  105,98.7385,   51,   66,45.9955],
+        [   51,   66,45.9955,    0,   96,14.6813],
+        [    0,   96,14.6813,   15,  127,-0.23257],
+        [   13,  127,-0.23257,   53,  162,-10.6082]]]);
 
-var i = 0;
-var x = window.innerWidth / 2; 
-var y = window.innerHeight / 2;
-var z = 50;
-var rawXMin = 10000;
-var rawXMax = -10000;
-var rawYMin = 10000;
-var rawYMax = -10000;
+anotherFrameOfData = nj.array([[[  809,  587,85.6214,  809,  587,85.6214],
+        [  809,  587,85.6214, 1071,  454,60.5902],
+        [ 1071,  454,60.5902, 1189,  367,35.5585],
+        [ 1189,  367,35.5585, 1238,  313,15.9055]],
+       [[  719,  485,92.1869,  910,  201,49.6039],
+        [  910,  201,49.6039, 1006,   77,16.5942],
+        [ 1006,   77,16.5942, 1068,   88,-5.6131],
+        [ 1068,   88,-5.6131, 1105,  137,-18.8678]],
+       [[  634,  471,88.0537,  748,  200,44.1013],
+        [  748,  200,44.1013,  780,   45,6.82177],
+        [  780,   45,6.82177,  844,   32,-19.752],
+        [  844,   32,-19.752,  899,   65,-35.5551]],
+       [[  551,  473,82.7748,  585,  234,40.5079],
+        [  585,  234,40.5079,  587,   85,6.56608],
+        [  587,   85,6.56608,  644,   64,-19.3292],
+        [  644,   64,-19.3292,  703,   91,-35.1974]],
+       [[  480,  508,74.5175,  448,  287,35.3538],
+        [  448,  287,35.3538,  384,  173,9.1753],
+        [  384,  173,9.1753,  394,  141,-9.03716],
+        [  394,  141,-9.03716,  433,  139,-25.1747]]]);
 
+var frameIndex = 0;
+var flipped = 0; 
 
-Leap.loop(controllerOptions, function(frame)
-{
+function draw(){
     clear();
-    HandleFrame(frame);
-}
-);
 
-function HandleFrame(frame){
+    for(var i = 0; i<oneFrameOfData.shape[0]; i++){
+        for(var j = 0; j<oneFrameOfData.shape[1]; j++){
 
-    //x += Math.floor(Math.random()*3)-1;
-    //y += Math.floor(Math.random()*3)-1;
+            var xStart = oneFrameOfData.get(i,j,0);
+            var yStart = oneFrameOfData.get(i,j,1);
+            var zStart = oneFrameOfData.get(i,j,2);
+            var xEnd = oneFrameOfData.get(i,j,3);
+            var yEnd = oneFrameOfData.get(i,j,4);
+            var zEnd = oneFrameOfData.get(i,j,5);
+            if(flipped==1){
+                line(xStart,yStart,xEnd,yEnd);
+            }
 
-    
-    if (frame.hands.length==1){
-        var hand = frame.hands[0];
-        HandleHand(hand);
+            var xStart2 = anotherFrameOfData.get(i,j,0);
+            var yStart2 = anotherFrameOfData.get(i,j,1);
+            var zStart2 = anotherFrameOfData.get(i,j,2);
+            var xEnd2 = anotherFrameOfData.get(i,j,3);
+            var yEnd2 = anotherFrameOfData.get(i,j,4);
+            var zEnd2 = anotherFrameOfData.get(i,j,5);
+            if(flipped==0){
+                line(xStart2,yStart2,xEnd2,yEnd2);
+            }
+        }
     } 
 
-}
+    frameIndex+=1;
 
-function HandleHand(hand){
-        var fingers = hand.fingers;
-        var width = 3;
-        var stroke = 100;
-
-        
-        for(var j = 3; j>=0 ; j--){
-            for(var i = 0; i<5 ; i++){
-                HandleBone(fingers[i].bones[j],width,stroke);
-            } 
-            width+=1;
-            stroke+=40;
+    if(frameIndex >= 100){
+        frameIndex = 0;
+        if(flipped==0){
+            flipped=1;
+        }else if(flipped==1){
+            flipped=0;
         }
 
-}
-
-function HandleFinger(finger){
-
-    var width = 6;
-    var stroke = 220;
-    for(var i = 0; i<4 ; i++){
-        HandleBone(finger.bones[i],width,stroke);
-        width-=1;
-        stroke-=50;
     }
-
-//    if(finger.tipPosition[0]< rawXMin){
-//        rawXMin = finger.tipPosition[0];
-//    }
-//    if(finger.tipPosition[0]> rawXMax){
-//        rawXMin = finger.tipPosition[0];
-//    }
-//    
-//    if(finger.tipPosition[1]< rawYMin){
-//        rawYMin = finger.tipPosition[1];
-//    }
-//    if(finger.tipPosition[1]> rawYMax){
-//        rawYMax = finger.tipPosition[1];
-//    }
-// 
-//    x = scaleValue(finger.tipPosition[0],[rawXMin,rawXMax],[0,window.innerWidth]);
-//    y = window.innerHeight - scaleValue(finger.tipPosition[1],[rawYMin,rawYMax],[0,window.innerHeight]);
-//    z = finger.tipPosition[2] + 400;
-//
-//    
-//    circle(x,y,50);
-}
-
-
-function HandleBone(bone,width,s){
-    var base = bone.prevJoint;
-    var end = bone.nextJoint;
-    console.log(bone);
-
-    if(base[0]< rawXMin){
-        rawXMin = base[0];
-    }
-    if(base[0]> rawXMax){
-        rawXMax = base[0];
-    }
-    if(base[1]< rawYMin){
-        rawYMin = base[1];
-    }
-    if(base[1]> rawYMax){
-        rawYMax = base[1];
-    }
- 
-    [xb,yb] = TransformCoordinates(base[0],base[1]);
-    [xe,ye] = TransformCoordinates(end[0],end[1]);
-    
-    strokeWeight(width);
-    stroke(s);
-    line(xb,yb,xe,ye);
-    
-    
-  //  circle(x,y,50);
-
-
-
-}
-
-
-
-function TransformCoordinates(x,y){
-    x = scaleValue(x,[rawXMin,rawXMax],[0,window.innerWidth]);
-    y = window.innerHeight - scaleValue(y,[rawYMin,rawYMax],[0,window.innerHeight]);
-
-    return [x,y];
-}
-
-//Found this code on github
-function scaleValue(value, from, to) {
-
-	var scale = (to[1] - to[0]) / (from[1] - from[0]);
-	var capped = Math.min(from[1], Math.max(from[0], value)) - from[0];
-
-	return ~~(capped * scale + to[0]);
 }
