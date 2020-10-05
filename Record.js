@@ -1,5 +1,4 @@
 var controllerOptions = {};
-
 var i = 0;
 var x = window.innerWidth / 2; 
 var y = window.innerHeight / 2;
@@ -10,8 +9,11 @@ var rawYMin = 10000;
 var rawYMax = -10000;
 var previousNumHands = 0;
 var currentNumHands = 0;
+var numSamples = 2;
+var currentSample = 0;
 
-var oneFrameOfData = nj.zeros([5,4,6]);
+var framesOfData = nj.zeros([5,4,6,numSamples]);
+nj.config.printThreshold = 1000;
 
 
 Leap.loop(controllerOptions, function(frame)
@@ -21,9 +23,8 @@ Leap.loop(controllerOptions, function(frame)
 
     clear();
     HandleFrame(frame);
-    if(previousNumHands == 2 && currentNumHands == 1){
-        RecordData();
-    }
+    RecordData();
+    
 
     previousNumHands = currentNumHands;
 }
@@ -31,18 +32,16 @@ Leap.loop(controllerOptions, function(frame)
 
 function HandleFrame(frame){
 
-    //x += Math.floor(Math.random()*3)-1;
-    //y += Math.floor(Math.random()*3)-1;
-
+    
     
     if (frame.hands.length>=1){
         var hand = frame.hands[0];
-        HandleHand(hand);
+        HandleHand(hand,frame.interactionBox);
     } 
 
 }
 
-function HandleHand(hand){
+function HandleHand(hand,interactionBox){
         var fingers = hand.fingers;
         var width = 3;
         var stroke = 100;
@@ -50,7 +49,7 @@ function HandleHand(hand){
         
         for(var j = 3; j>=0 ; j--){
             for(var i = 0; i<5 ; i++){
-                HandleBone(fingers[i].bones[j],width,stroke,i,j);
+                HandleBone(fingers[i].bones[j],width,stroke,i,j,interactionBox);
             } 
             width+=1;
             stroke+=40;
@@ -68,67 +67,39 @@ function HandleFinger(finger){
         stroke-=50;
     }
 
-//    if(finger.tipPosition[0]< rawXMin){
-//        rawXMin = finger.tipPosition[0];
-//    }
-//    if(finger.tipPosition[0]> rawXMax){
-//        rawXMin = finger.tipPosition[0];
-//    }
-//    
-//    if(finger.tipPosition[1]< rawYMin){
-//        rawYMin = finger.tipPosition[1];
-//    }
-//    if(finger.tipPosition[1]> rawYMax){
-//        rawYMax = finger.tipPosition[1];
-//    }
-// 
-//    x = scaleValue(finger.tipPosition[0],[rawXMin,rawXMax],[0,window.innerWidth]);
-//    y = window.innerHeight - scaleValue(finger.tipPosition[1],[rawYMin,rawYMax],[0,window.innerHeight]);
-//    z = finger.tipPosition[2] + 400;
-//
-//    
-//    circle(x,y,50);
 }
 
 
-function HandleBone(bone,width,s,fingerIndex,boneIndex){
+function HandleBone(bone,width,s,fingerIndex,boneIndex,interactionBox){
 
     var base = bone.prevJoint;
     var end = bone.nextJoint;
+
+    var normalizedPrevJoint = interactionBox.normalizePoint(base,true);
+    var normalizedNextJoint = interactionBox.normalizePoint(end,true);
+    //console.log(normalizedPrevJoint,normalizedNextJoint);
     //console.log(bone);
 
-    if(base[0]< rawXMin){
-        rawXMin = base[0];
-    }
-    if(base[0]> rawXMax){
-        rawXMax = base[0];
-    }
-    if(base[1]< rawYMin){
-        rawYMin = base[1];
-    }
-    if(base[1]> rawYMax){
-        rawYMax = base[1];
-    }
- 
-    [xb,yb] = TransformCoordinates(base[0],base[1]);
-    [xe,ye] = TransformCoordinates(end[0],end[1]);
+
+
+    framesOfData.set(fingerIndex,boneIndex,0,currentSample,normalizedPrevJoint[0]);
+    framesOfData.set(fingerIndex,boneIndex,1,currentSample,normalizedPrevJoint[1]);
+    framesOfData.set(fingerIndex,boneIndex,2,currentSample,normalizedPrevJoint[2]);
+    framesOfData.set(fingerIndex,boneIndex,3,currentSample,normalizedNextJoint[0]);
+    framesOfData.set(fingerIndex,boneIndex,4,currentSample,normalizedNextJoint[1]);
+    framesOfData.set(fingerIndex,boneIndex,5,currentSample,normalizedNextJoint[2]);
+
+    [canvasXprev,canvasYprev] = TransformCoordinates(normalizedPrevJoint[0],normalizedPrevJoint[1]);
+    [canvasXnext,canvasYnext] = TransformCoordinates(normalizedNextJoint[0],normalizedNextJoint[1]);
+
+    //console.log(canvasXprev,canvasYprev,canvasXnext,canvasYnext)
+
+
 
     var zb = base[2];
     var ze = end[2];
 
-    
-    
-
-    oneFrameOfData.set(fingerIndex,boneIndex,0,xb);
-    oneFrameOfData.set(fingerIndex,boneIndex,1,yb);
-    oneFrameOfData.set(fingerIndex,boneIndex,2,zb);
-    oneFrameOfData.set(fingerIndex,boneIndex,3,xe);
-    oneFrameOfData.set(fingerIndex,boneIndex,4,ye);
-    oneFrameOfData.set(fingerIndex,boneIndex,5,ze);
-
-
-    
-    strokeWeight(width);
+    strokeWeight(width*5);
     
     if(currentNumHands == 1){
         stroke(0,s,0);
@@ -136,7 +107,7 @@ function HandleBone(bone,width,s,fingerIndex,boneIndex){
         stroke(s,0,0);
     }
     
-    line(xb,yb,xe,ye);
+    line(canvasXprev,canvasYprev,canvasXnext,canvasYnext);
     
     
   //  circle(x,y,50);
@@ -146,27 +117,29 @@ function HandleBone(bone,width,s,fingerIndex,boneIndex){
 }
 
 function RecordData(){
+    if(currentNumHands == 2){
+        //console.log( framesOfData.pick(null,null,null,currentSample).toString() );
+
+        currentSample +=1;
+        if(currentSample==numSamples){
+            currentSample=0;
+        }
+    }
     if(previousNumHands == 2 && currentNumHands == 1){
+
         background(50);
-        console.log(oneFrameOfData.toString())
+        //console.log( framesOfData.pick(null,null,null,currentSample).toString() );
+        console.log(framesOfData.toString())
     } 
 
 }
 
-
-
 function TransformCoordinates(x,y){
-    x = scaleValue(x,[rawXMin,rawXMax],[0,window.innerWidth]);
-    y = window.innerHeight - scaleValue(y,[rawYMin,rawYMax],[0,window.innerHeight]);
+    x = window.innerWidth * x;
+    y = window.innerHeight * (1 - y);
 
-    return [x,y];
+    return [x,y]
 }
 
-//Found this code on github
-function scaleValue(value, from, to) {
 
-	var scale = (to[1] - to[0]) / (from[1] - from[0]);
-	var capped = Math.min(from[1], Math.max(from[0], value)) - from[0];
 
-	return ~~(capped * scale + to[0]);
-}
