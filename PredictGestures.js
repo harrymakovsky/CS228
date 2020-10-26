@@ -2,7 +2,7 @@ const knnClassifier = ml5.KNNClassifier();
 nj.config.printThreshold = 1000;
 var controllerOptions = {}
 
-
+var programState = 0;
 
 var i = 0;
 var previousNumHands = 0;
@@ -18,24 +18,68 @@ var m = 0;
 
 Leap.loop(controllerOptions, function(frame){
     clear();
+
     currentNumHands = frame.hands.length;
-
-    if(!trainingCompleted){
-        Train();
-        trainingCompleted = true;
+    
+    DetermineState(frame);
+    if(programState==0){
+        HandleState0(frame);
+    }else if(programState==1){
+        HandleState1(frame);
     }
-    HandleFrame(frame);
 
 
-    if(currentNumHands==1){
+//    if(!trainingCompleted){
+        //Train();
+//        trainingCompleted = true;
+//    }
+//    HandleFrame(frame);
+
+
+//    if(currentNumHands==1){
         //console.log(oneFrameOfData.toString());
-        Test();
-    }
+        //Test();
+//    }
 
     previousNumHands = currentNumHands;
     
 
 });
+
+function DetermineState(){
+    if(currentNumHands==0){
+        programState=0;
+    }else{
+        programState=1;
+    }
+}
+
+function HandleState1(frame){
+    HandleFrame(frame);
+    if(currentNumHands==1){
+        //console.log(oneFrameOfData.toString());
+        //Test();
+    }
+
+}
+
+function HandleState0(frame){
+    TrainKNNIfNotDoneYet()
+    DrawImageToHelpUserPutTheirHandOverTheDevice()
+}
+
+function TrainKNNIfNotDoneYet(){
+    if(!trainingCompleted){
+        //Train();
+        trainingCompleted = true;
+    }
+}
+
+function DrawImageToHelpUserPutTheirHandOverTheDevice(){
+    image(img,0,0);
+
+}
+
 
 function Train(){
 
@@ -43,52 +87,115 @@ function Train(){
 
         var features = train0.pick(null,null,null,i);
         features = features.reshape(1,120);
-
         knnClassifier.addExample(features.tolist(),0);
-        
-        features = train1.pick(null,null,null,i);
+        features = train0.pick(null,null,null,i);
+        features = MirrorHand(features);
         features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),0);
 
+        features = train1Davis.pick(null,null,null,i);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),1);
+        features = train1Davis.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(),1);
         
+        features = train1Bongard.pick(null,null,null,i);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),1);
+        features = train1Bongard.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),1);
+        
+
+        features = train1Allison.pick(null,null,null,i);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),1);
+        features = train1Allison.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),1);
+
         features = train2.pick(null,null,null,i);
         features = features.reshape(1,120);
-
         knnClassifier.addExample(features.tolist(),2);
- 
+        features = train2.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),2);
+        
         features = train3.pick(null,null,null,i);
         features = features.reshape(1,120);
-
         knnClassifier.addExample(features.tolist(),3);       
+        features = train3.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),3);
         
         features = train4.pick(null,null,null,i);
         features = features.reshape(1,120);
-
         knnClassifier.addExample(features.tolist(),4);
-
+        features = train4.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),4);
+        
         features = train5.pick(null,null,null,i);
         features = features.reshape(1,120);
-
+        knnClassifier.addExample(features.tolist(),5);
+        features = train5.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),5);
+        
+        features = train5Faucher.pick(null,null,null,i);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),5);
+        features = train5Faucher.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(),5);
         
         features = train6.pick(null,null,null,i);
         features = features.reshape(1,120);
-
+        knnClassifier.addExample(features.tolist(),6);
+        features = train6.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(),6);
         
         features = train7.pick(null,null,null,i);
         features = features.reshape(1,120);
-
+        knnClassifier.addExample(features.tolist(),7);
+        features = train7.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),7);
+        
+        features = train7Fisher.pick(null,null,null,i);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(),7);
+        features = train7Fisher.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(),7);
         
         features = train8.pick(null,null,null,i);
         features = features.reshape(1,120);
-
+        knnClassifier.addExample(features.tolist(),8);  
+        features = train8.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(),8);
         
         features = train9.pick(null,null,null,i);
         features = features.reshape(1,120);
-
+        knnClassifier.addExample(features.tolist(),9);
+        features = train9.pick(null,null,null,i);
+        features = MirrorHand(features);
+        features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(),9);
     }
 }
@@ -99,8 +206,8 @@ function GotResults(err, result){
 
     m = (((n-1)*m)+(c==9)) / n
 
-    console.log(n,m,c);
-    //console.log(parseInt(result.label));
+    //console.log(n,m,c);
+    console.log(parseInt(result.label));
     //
 }
 
@@ -131,6 +238,25 @@ function CenterXData(){
 
         }
     }
+}
+function MirrorHand(frameOfData){
+    xValues = frameOfData.slice([],[],[0,6,3]);
+    var currentMean = xValues.mean();
+    var horizontalShift = 0.5 - currentMean;
+
+    for(var currentRow = 0; currentRow<5; currentRow++){
+        for(var currentColumn = 0; currentColumn<4; currentColumn++){
+            currentX = frameOfData.get(currentRow,currentColumn,0);
+            shiftedX = 1 - currentX;
+            frameOfData.set(currentRow,currentColumn,0, shiftedX);
+            
+            currentX = frameOfData.get(currentRow,currentColumn,3);
+            shiftedX = 1 - currentX;
+            frameOfData.set(currentRow,currentColumn,3, shiftedX);
+
+        }
+    }
+    return frameOfData;
 }
 
 function CenterYData(){
@@ -288,8 +414,8 @@ function RecordData(){
 }
 
 function TransformCoordinates(x,y){
-    x = window.innerWidth * x;
-    y = window.innerHeight * (1 - y);
+    x = (window.innerWidth/2) * x;
+    y = (window.innerHeight/2) * (1 - y);
 
     return [x,y]
 }
