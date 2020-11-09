@@ -8,4 +8,6 @@ function setup() {
     arrowDown = loadImage('https://i.ibb.co/Pz5Kc8k/arrow-Down.jpg');
     arrowToward = loadImage('https://i.ibb.co/txt9LQk/arrow-Toward.jpg');
     arrowAway = loadImage('https://i.ibb.co/q9Hzxsn/arrow-Away.jpg');
+    four = loadImage('https://i.imgur.com/i0zOXeN.png');
+    one = loadImage('https://i.imgur.com/VPQxLnZ.png')
 }

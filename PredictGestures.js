@@ -15,6 +15,9 @@ nj.config.printThreshold = 1000;
 var trainingCompleted = false;
 var n = 0; 
 var m = 0;
+var digitToShow = 4;
+var timeSinceLastDigitChange = new Date();
+
 
 Leap.loop(controllerOptions, function(frame){
     clear();
@@ -47,6 +50,62 @@ Leap.loop(controllerOptions, function(frame){
     
 
 });
+
+function SignIn(){
+
+ 
+    username = document.getElementById('username').value;
+
+    var list = document.getElementById('users');
+
+    
+    if(IsNewUser(username,list)){
+        CreateNewUser(username,list);
+        CreateSignInItem(username,list);
+    }else{
+        ID = String(username) + "_signins"
+        listItem = document.getElementById( ID );
+
+        listItem.innerHTML = parseInt(listItem.innerHTML) + 1;
+    }
+
+
+
+    //console.log(list.innerHTML);
+    return false;
+}
+
+
+function CreateNewUser(username,list){
+        var item = document.createElement('li');
+        item.innerHTML = String(username);
+        item.id = String(username) + "_name";
+        list.appendChild(item);
+
+}
+
+function CreateSignInItem(username,list){
+        var item = document.createElement('li');
+        item.innerHTML = 1;
+        item.id = String(username)+ "_signins";
+        list.appendChild(item);
+
+}
+
+function IsNewUser(username,list){
+    var users = list.children;
+    var usernameFound = false;
+
+    for(var i= 0; i< users.length; i++){
+        if (String(username) == users[i].innerHTML){
+            usernameFound = true;
+        }
+
+    }
+
+    return usernameFound == false;
+}
+
 
 function DetermineState(){
     if(currentNumHands==0){
@@ -141,15 +200,7 @@ function HandleState1(frame){
     }else if(HandIsTooClose()){
         DrawArrowAway()
     }
-//    else if(HandIsTooFarToTheRight()){
-//        DrawArrowLeft()
-//    }else if(HandIsTooFarToTheRight()){
-//        DrawArrowLeft()
-//    }else if(HandIsTooFarToTheRight()){
-//        DrawArrowLeft()
-//    }else if(HandIsTooFarToTheRight()){
-//        DrawArrowLeft()
-//    }
+
 
     if(currentNumHands==1){
         //console.log(oneFrameOfData.toString());
@@ -160,10 +211,50 @@ function HandleState1(frame){
 
 function HandleState2(frame){
     HandleFrame(frame);
+    DrawLowerRightPanel();
+    DetermineWhetherToSwitchDigits();
     if(currentNumHands==1){
         //console.log(oneFrameOfData.toString());
-        //Test();
+        Test();
     }
+}
+
+function DetermineWhetherToSwitchDigits(){
+    if(TimeToSwitchDigits()){
+        SwitchDigits();
+    }
+}
+
+function TimeToSwitchDigits(){
+    currentTime = new Date();
+    elapsedTimeInMilliseconds = currentTime - timeSinceLastDigitChange;
+    elapsedTimeInSeconds = elapsedTimeInMilliseconds / 1000;
+    if(elapsedTimeInSeconds>12){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+
+function SwitchDigits(){
+    if(digitToShow == 4){
+        digitToShow = 1;
+    }else if(digitToShow == 1){
+        digitToShow = 4;
+    }
+    n = 0;
+    timeSinceLastDigitChange = new Date();
+}
+
+function DrawLowerRightPanel(){
+    if(digitToShow == 4){
+        image(four,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);
+    }else{
+        image(one,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);
+    
+    }
+
 }
 
 
@@ -193,7 +284,7 @@ function HandleState0(frame){
 
 function TrainKNNIfNotDoneYet(){
     if(!trainingCompleted){
-        //Train();
+        Train();
         trainingCompleted = true;
     }
 }
@@ -327,10 +418,10 @@ function GotResults(err, result){
     n+=1;
     var c = parseInt(result.label);
 
-    m = (((n-1)*m)+(c==9)) / n
+    m = (((n-1)*m)+(c==digitToShow)) / n
 
     //console.log(n,m,c);
-    console.log(parseInt(result.label));
+    console.log(digitToShow,m);
     //
 }
 
@@ -479,8 +570,7 @@ function HandleBone(bone,width,s,fingerIndex,boneIndex,interactionBox){
 
     var normalizedPrevJoint = interactionBox.normalizePoint(base,true);
     var normalizedNextJoint = interactionBox.normalizePoint(end,true);
-    //console.log(normalizedPrevJoint,normalizedNextJoint);
-    //console.log(bone);
+
 
 
 
@@ -494,8 +584,12 @@ function HandleBone(bone,width,s,fingerIndex,boneIndex,interactionBox){
     [canvasXprev,canvasYprev] = TransformCoordinates(normalizedPrevJoint[0],normalizedPrevJoint[1]);
     [canvasXnext,canvasYnext] = TransformCoordinates(normalizedNextJoint[0],normalizedNextJoint[1]);
 
-    //console.log(canvasXprev,canvasYprev,canvasXnext,canvasYnext)
 
+    if ( m > .5){
+        stroke(0,int(255*m),0)
+    }else if(m <=.5){
+        stroke(int(255*(1-m)),0,0)
+    }
 
 
     var zb = base[2];
@@ -504,15 +598,15 @@ function HandleBone(bone,width,s,fingerIndex,boneIndex,interactionBox){
     strokeWeight(width*10);
     
     if(currentNumHands == 1){
-        stroke(s);
+        //stroke(s);
     }else{
-        stroke(s);
+        //stroke(s);
     }
     
     line(canvasXprev,canvasYprev,canvasXnext,canvasYnext);
     
     
-  //  circle(x,y,50);
+
 
 
 
