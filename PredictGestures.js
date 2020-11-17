@@ -15,8 +15,20 @@ nj.config.printThreshold = 1000;
 var trainingCompleted = false;
 var n = 0; 
 var m = 0;
-var digitToShow = 4;
+var digitToShow = 0;
 var timeSinceLastDigitChange = new Date();
+
+var TIMETOLEARN = 9;
+
+var accuracy = new Array(10);
+
+for(var accs = 0; accs<accuracy.length;accs++){
+    accuracy[accs]=0;
+}
+
+var numAccuracy = 1;
+
+var currMaxDigit = 0;
 
 
 Leap.loop(controllerOptions, function(frame){
@@ -229,7 +241,8 @@ function TimeToSwitchDigits(){
     currentTime = new Date();
     elapsedTimeInMilliseconds = currentTime - timeSinceLastDigitChange;
     elapsedTimeInSeconds = elapsedTimeInMilliseconds / 1000;
-    if(elapsedTimeInSeconds>12){
+    TIMETOLEARN = 4 + (1-accuracy[digitToShow])*8
+    if(elapsedTimeInSeconds>TIMETOLEARN){
         return true;
     }else{
         return false;
@@ -238,22 +251,66 @@ function TimeToSwitchDigits(){
 
 
 function SwitchDigits(){
-    if(digitToShow == 4){
-        digitToShow = 1;
-    }else if(digitToShow == 1){
-        digitToShow = 4;
+    accuracy[digitToShow] = m;
+    meanAcc = meanAccuracy();
+
+    console.log(meanAcc);
+
+    if(digitToShow == currMaxDigit && (meanAcc>.8)){
+        if(digitToShow==9){
+            digitToShow=0;
+        }else{
+            currMaxDigit+=1;
+            digitToShow+=1;
+            numAccuracy+=1;
+        }
+    }else if(digitToShow < currMaxDigit){
+        digitToShow +=1;
+    }else{
+        digitToShow = 0;
     }
+    
     n = 0;
     timeSinceLastDigitChange = new Date();
 }
 
-function DrawLowerRightPanel(){
-    if(digitToShow == 4){
-        image(four,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);
-    }else{
-        image(one,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);
-    
+function meanAccuracy(){
+    var tot = 0;
+    for( var i = 0; i< numAccuracy; i++ ){
+        console.log(accuracy[i]);
+        tot += accuracy[i];
     }
+    return avg = tot / numAccuracy;
+    
+}
+
+function DrawLowerRightPanel(){
+    if(accuracy[digitToShow]>.8){
+        textSize(400);
+        text(String(digitToShow),window.innerWidth*.75,window.innerHeight*.75);
+    
+    }else if (digitToShow == 1){
+        image(one,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);
+    }else if(digitToShow == 4){
+        image(four,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);
+    }else if(digitToShow == 2){
+         image(two,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);  
+    }else if(digitToShow == 3){
+         image(three,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);  
+    }else if(digitToShow == 7){
+         image(seven,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);  
+    }else if(digitToShow == 5){
+         image(five,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);  
+    }else if(digitToShow == 6){
+         image(six,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);  
+    }else if(digitToShow == 8){
+         image(eight,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);  
+    }else if(digitToShow == 9){
+         image(nine,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);  
+    }else if(digitToShow == 0){
+         image(zero,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);  
+    }
+
 
 }
 
