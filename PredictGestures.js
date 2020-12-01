@@ -22,6 +22,9 @@ var TIMETOLEARN = 9;
 
 var accuracy = new Array(10);
 
+var rawMeanAcc = 0;
+var lastRawMeanAcc = 0;
+
 for(var accs = 0; accs<accuracy.length;accs++){
     accuracy[accs]=0;
 }
@@ -29,6 +32,8 @@ for(var accs = 0; accs<accuracy.length;accs++){
 var numAccuracy = 1;
 
 var currMaxDigit = 0;
+var highestScore=0;
+var highestScoreName="";
 
 
 Leap.loop(controllerOptions, function(frame){
@@ -64,8 +69,7 @@ Leap.loop(controllerOptions, function(frame){
 });
 
 function SignIn(){
-
- 
+     
     username = document.getElementById('username').value;
 
     var list = document.getElementById('users');
@@ -74,16 +78,22 @@ function SignIn(){
     if(IsNewUser(username,list)){
         CreateNewUser(username,list);
         CreateSignInItem(username,list);
+        CreateAccuracyItem(username,list);
     }else{
-        ID = String(username) + "_signins"
+        accID = String(username) + "_accuracy";
+        accItem = document.getElementById( accID );
+        lastRawMeanAcc = parseFloat(accItem.innerHTML);
+
+        ID = String(username) + "_signins";
         listItem = document.getElementById( ID );
 
         listItem.innerHTML = parseInt(listItem.innerHTML) + 1;
     }
 
 
+    HighScores();
 
-    //console.log(list.innerHTML);
+    console.log(list.innerHTML);
     return false;
 }
 
@@ -104,6 +114,29 @@ function CreateSignInItem(username,list){
 
 }
 
+function SaveScore(){
+
+    username = document.getElementById('username').value;
+    var list = document.getElementById('users');
+
+    accID = String(username) + "_accuracy"
+    accItem = document.getElementById( accID );
+    accItem.innerHTML = rawMeanAccuracy();
+
+    console.log(rawMeanAccuracy());
+
+    console.log(list.innerHTML);
+    return false;
+
+}
+
+function CreateAccuracyItem(username,list){
+    var item = document.createElement('li');
+    item.innerHTML = 0;
+    item.id = String(username)+"_accuracy";
+    list.appendChild(item);
+}
+
 function IsNewUser(username,list){
     var users = list.children;
     var usernameFound = false;
@@ -116,6 +149,18 @@ function IsNewUser(username,list){
     }
 
     return usernameFound == false;
+}
+
+function HighScores(){
+    var users = document.getElementById('users');
+    var user_items = users.getElementsByTagName("li");
+    for( var i = 2; i < user_items.length; i+=3 ){
+        if(parseFloat(user_items[i].innerHTML) > highestScore){
+            highestScore = parseFloat(user_items[i].innerHTML);
+            highestScoreName = user_items[i-2].innerHTML;
+        }
+    }
+
 }
 
 
@@ -224,6 +269,7 @@ function HandleState1(frame){
 function HandleState2(frame){
     HandleFrame(frame);
     DrawLowerRightPanel();
+    DrawLowerLeftPanel();
     DetermineWhetherToSwitchDigits();
     if(currentNumHands==1){
         //console.log(oneFrameOfData.toString());
@@ -269,6 +315,7 @@ function SwitchDigits(){
     }else{
         digitToShow = 0;
     }
+    rawMeanAcc = rawMeanAccuracy();
     
     n = 0;
     timeSinceLastDigitChange = new Date();
@@ -277,18 +324,58 @@ function SwitchDigits(){
 function meanAccuracy(){
     var tot = 0;
     for( var i = 0; i< numAccuracy; i++ ){
-        console.log(accuracy[i]);
+        //console.log(accuracy[i]);
         tot += accuracy[i];
     }
     return avg = tot / numAccuracy;
     
 }
 
-function DrawLowerRightPanel(){
-    if(accuracy[digitToShow]>.8){
-        textSize(400);
-        text(String(digitToShow),window.innerWidth*.75,window.innerHeight*.75);
+function rawMeanAccuracy(){
+    var tot = 0;
+    for( var i = 0; i < 10; i++ ){
+        //console.log(accuracy[i]);
+        tot += accuracy[i];
+    }
+    return avg = tot / 10;
     
+}
+
+
+function DrawLowerLeftPanel(){
+
+    textSize(40);
+    stroke(0);
+    strokeWeight(0);
+    
+    prevString = "Previous Best: " + String(lastRawMeanAcc.toFixed(2));
+    text(prevString,window.innerWidth*.25,window.innerHeight*.6);
+
+    text("Current Score: "+String(rawMeanAcc.toFixed(2)),window.innerWidth*.25,window.innerHeight*.75);
+
+    text("Highest Score:",window.innerWidth*.05,window.innerHeight*.6);
+    text(highestScoreName+"-"+String(highestScore),window.innerWidth*.05,window.innerHeight*.75);
+
+}
+
+function DrawLowerRightPanel(){
+    if(accuracy[digitToShow]>.96){
+        textSize(90);
+        stroke(0);
+        strokeWeight(0);
+        equation = CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel2();
+
+        text(equation,window.innerWidth*.5,window.innerHeight*.75);
+    
+    }else if(accuracy[digitToShow]>.8){
+        
+        textSize(100);
+        stroke(0);
+        strokeWeight(0);
+        equation = CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel1();
+
+        text(equation,window.innerWidth*.75,window.innerHeight*.75);
+
     }else if (digitToShow == 1){
         image(one,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);
     }else if(digitToShow == 4){
@@ -314,6 +401,85 @@ function DrawLowerRightPanel(){
 
 }
 
+function CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel1(){
+    equation = ""
+
+    switch(digitToShow){
+        case 0:
+            equation = "5-5"
+            break;
+        case 1:
+            equation = "8-7"
+            break;
+        case 2:
+            equation = "1+1"
+            break;
+        case 3:
+            equation = "9-6"
+            break;
+        case 4:
+            equation = "1+3"
+            break;
+        case 5:
+            equation = "6-1"
+            break;
+        case 6:
+            equation = "4+2"
+            break;
+        case 7:
+            equation = "2+5"
+            break;
+        case 8:
+            equation = "6+2"
+            break;
+        case 9:
+            equation = "5+4"
+            break;
+    }
+
+    return equation;
+
+}
+
+function CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel2(){
+    equation = ""
+
+    switch(digitToShow){
+        case 0:
+            equation = "15 mod 3"
+            break;
+        case 1:
+            equation = "a=1 a+0=?"
+            break;
+        case 2:
+            equation = "8/4"
+            break;
+        case 3:
+            equation = "sqrt(9)"
+            break;
+        case 4:
+            equation = "2^2"
+            break;
+        case 5:
+            equation = "1000-995"
+            break;
+        case 6:
+            equation = "x=3 2x=?"
+            break;
+        case 7:
+            equation = "3+1+2+1"
+            break;
+        case 8:
+            equation = "a=3 a+5=?"
+            break;
+        case 9:
+            equation = "3^2"
+            break;
+    }
+
+    return equation;
+
+}
 
 function DrawArrowRight(){
     image(arrowRight,window.innerWidth/2,0,window.innerWidth/2,window.innerHeight/2);
