@@ -18,16 +18,26 @@ var m = 0;
 var digitToShow = 0;
 var timeSinceLastDigitChange = new Date();
 
-var TIMETOLEARN = 9;
+var TIMETOLEARN = 6;
 
 var accuracy = new Array(10);
+var level1 = new Array(10);
+var level2=new Array(10);
+var level3= new Array(10);
+var learnedDigit = new Array(10);
 
 var rawMeanAcc = 0;
 var lastRawMeanAcc = 0;
 
 for(var accs = 0; accs<accuracy.length;accs++){
     accuracy[accs]=0;
+    level1[accs]=true;
+    level2[accs]=true;
+    level3[accs]=false;
+    learnedDigit[accs]=true;
 }
+level2[1]=false;
+level1[1]=false;
 
 var numAccuracy = 1;
 
@@ -287,7 +297,7 @@ function TimeToSwitchDigits(){
     currentTime = new Date();
     elapsedTimeInMilliseconds = currentTime - timeSinceLastDigitChange;
     elapsedTimeInSeconds = elapsedTimeInMilliseconds / 1000;
-    TIMETOLEARN = 4 + (1-accuracy[digitToShow])*8
+    TIMETOLEARN = 4 + (1-accuracy[digitToShow])*2
     if(elapsedTimeInSeconds>TIMETOLEARN){
         return true;
     }else{
@@ -298,11 +308,15 @@ function TimeToSwitchDigits(){
 
 function SwitchDigits(){
     accuracy[digitToShow] = m;
+    if(accuracy[digitToShow]>.6 && learnedDigit[digitToShow]==false){
+        learnedDigit[digitToShow]=true;
+    }
     meanAcc = meanAccuracy();
+    rawMeanAcc = rawMeanAccuracy();
 
     console.log(meanAcc);
 
-    if(digitToShow == currMaxDigit && (meanAcc>.8)){
+    if(digitToShow == currMaxDigit && accuracy[digitToShow]>.6){
         if(digitToShow==9){
             digitToShow=0;
         }else{
@@ -315,7 +329,6 @@ function SwitchDigits(){
     }else{
         digitToShow = 0;
     }
-    rawMeanAcc = rawMeanAccuracy();
     
     n = 0;
     timeSinceLastDigitChange = new Date();
@@ -358,23 +371,48 @@ function DrawLowerLeftPanel(){
 
 }
 
+function Learned(b){
+    return b;
+}
+function PassedLevel(b){
+    return b;
+}
+
 function DrawLowerRightPanel(){
-    if(accuracy[digitToShow]>.96){
+    if(accuracy[digitToShow]>.8 && level2.every(PassedLevel)){
         textSize(90);
         stroke(0);
         strokeWeight(0);
-        equation = CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel2();
+        if(m>.8){
+            level3[digitToShow]=true;
+        }
+        equation = CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel3();
 
         text(equation,window.innerWidth*.5,window.innerHeight*.75);
     
-    }else if(accuracy[digitToShow]>.8){
+    }else if(accuracy[digitToShow]>.7 && level1.every(PassedLevel)){
         
         textSize(100);
         stroke(0);
         strokeWeight(0);
-        equation = CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel1();
+        if(m>.7){
+            level2[digitToShow]=true;
+        }
+        equation = CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel2();
 
         text(equation,window.innerWidth*.75,window.innerHeight*.75);
+
+    }else if(accuracy[digitToShow]>.6 && learnedDigit.every(Learned)){
+
+        textSize(100);
+        stroke(0);
+        strokeWeight(0);
+        if(m>.6){
+            level1[digitToShow]=true;
+        }
+        equation = CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel1();
+        text(equation,window.innerWidth*.75,window.innerHeight*.75);
+
 
     }else if (digitToShow == 1){
         image(one,window.innerWidth/2,window.innerHeight/2-30,window.innerWidth/2,window.innerHeight/2-30);
@@ -446,10 +484,10 @@ function CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheA
 
     switch(digitToShow){
         case 0:
-            equation = "15 mod 3"
+            equation = "0/7"
             break;
         case 1:
-            equation = "a=1 a+0=?"
+            equation = "1/1"
             break;
         case 2:
             equation = "8/4"
@@ -461,7 +499,47 @@ function CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheA
             equation = "2^2"
             break;
         case 5:
-            equation = "1000-995"
+            equation = "100-95"
+            break;
+        case 6:
+            equation = "18/3"
+            break;
+        case 7:
+            equation = "14/2"
+            break;
+        case 8:
+            equation = "2x4"
+            break;
+        case 9:
+            equation = "3^2"
+            break;
+    }
+
+    return equation;
+
+}
+
+function CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel3(){
+    equation = ""
+
+    switch(digitToShow){
+        case 0:
+            equation = "15 mod 3"
+            break;
+        case 1:
+            equation = "a=1 a+0=?"
+            break;
+        case 2:
+            equation = "3! - 4"
+            break;
+        case 3:
+            equation = "log10(1000)"
+            break;
+        case 4:
+            equation = "2^2 + 2^2"
+            break;
+        case 5:
+            equation = "25 - 5*4"
             break;
         case 6:
             equation = "x=3 2x=?"
@@ -473,13 +551,14 @@ function CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheA
             equation = "a=3 a+5=?"
             break;
         case 9:
-            equation = "3^2"
+            equation = "51/3 - 8"
             break;
     }
 
     return equation;
 
 }
+
 
 function DrawArrowRight(){
     image(arrowRight,window.innerWidth/2,0,window.innerWidth/2,window.innerHeight/2);
@@ -516,7 +595,7 @@ function DrawImageToHelpUserPutTheirHandOverTheDevice(){
     image(img,0,0,window.innerWidth/2,window.innerHeight/2);
 
 }
-
+///////////////////////////////////////////////////////////
 
 function Train(){
 
