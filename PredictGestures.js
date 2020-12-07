@@ -18,7 +18,7 @@ var m = 0;
 var digitToShow = 0;
 var timeSinceLastDigitChange = new Date();
 
-var TIMETOLEARN = 6;
+var TIMETOLEARN = 5;
 
 var accuracy = new Array(10);
 var level1 = new Array(10);
@@ -30,14 +30,14 @@ var rawMeanAcc = 0;
 var lastRawMeanAcc = 0;
 
 for(var accs = 0; accs<accuracy.length;accs++){
-    accuracy[accs]=0;
+    accuracy[accs]=.85;
     level1[accs]=true;
     level2[accs]=true;
     level3[accs]=false;
     learnedDigit[accs]=true;
 }
-level2[1]=false;
-level1[1]=false;
+//level2[1]=false;
+//level1[1]=false;
 
 var numAccuracy = 1;
 
@@ -297,7 +297,10 @@ function TimeToSwitchDigits(){
     currentTime = new Date();
     elapsedTimeInMilliseconds = currentTime - timeSinceLastDigitChange;
     elapsedTimeInSeconds = elapsedTimeInMilliseconds / 1000;
-    TIMETOLEARN = 4 + (1-accuracy[digitToShow])*2
+    
+    if(level3.every(PassedLevel)){
+        TIMETOLEARN = 4 + (1-accuracy[digitToShow])*2
+    }
     if(elapsedTimeInSeconds>TIMETOLEARN){
         return true;
     }else{
@@ -388,7 +391,7 @@ function DrawLowerRightPanel(){
         }
         equation = CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel3();
 
-        text(equation,window.innerWidth*.5,window.innerHeight*.75);
+        text(equation,window.innerWidth*.5,window.innerHeight*.6);
     
     }else if(accuracy[digitToShow]>.7 && level1.every(PassedLevel)){
         
@@ -400,7 +403,7 @@ function DrawLowerRightPanel(){
         }
         equation = CreateMathEquationToReplaceTheDigitsInLowerRightPanelToHelpUserSignTheASLDigitAndLearnMathLevel2();
 
-        text(equation,window.innerWidth*.75,window.innerHeight*.75);
+        text(equation,window.innerWidth*.75,window.innerHeight*.6);
 
     }else if(accuracy[digitToShow]>.6 && learnedDigit.every(Learned)){
 
